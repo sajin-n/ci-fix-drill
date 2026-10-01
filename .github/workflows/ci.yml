@@ -15,12 +15,20 @@ jobs:
         with:
           node-version: '18'
       - name: Install dependencies
-        run: npm install   # BUG 1 — should be npm ci
+        run: npm ci
 
   test:
+    # GitHub-hosted jobs use separate runners; wait for the install check, then install here too.
+    needs: install
     runs-on: ubuntu-latest
-    # BUG 2 — missing needs: install, so test runs in parallel with install
-    # BUG 3 — no checkout or npm ci step, so node_modules is empty on this fresh machine
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies for test runner
+        run: npm ci
+      - name: Run lint
+        run: npm run lint
       - name: Run tests
         run: npm test
